@@ -5,6 +5,9 @@ target_link_libraries(${PROJECT_NAME}
     ffi
     dl
     m
+    LLVMExecutionEngine
+    LLVMTarget
+    LLVMMC
     LLVMCore
     LLVMSupport
     LLVMSystem)
