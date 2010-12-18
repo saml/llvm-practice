@@ -41,8 +41,8 @@ int main() {
     //declare main function
     llvm::Function *main_func = llvm::cast<llvm::Function>(
             module->getOrInsertFunction(
-                "main_function"
-                , Void                              //return type
+                "main"
+                , Int                               //return type
                 , static_cast<llvm::Type*>(0)));    //END_WITH_NULL
 
     //main function block
@@ -53,7 +53,7 @@ int main() {
 
 
     //argument to printf: "hello world!"
-    llvm::Constant *cstr = llvm::ConstantArray::get(context, "hello world!");
+    llvm::Constant *cstr = llvm::ConstantArray::get(context, "hello world!\n");
     llvm::GlobalVariable *cstr_var = new llvm::GlobalVariable(
             *module
             , cstr->getType()
@@ -81,11 +81,19 @@ int main() {
             , ""
             , block);
 
+    llvm::ReturnInst::Create(
+            context
+            , llvm::ConstantInt::get(Int, 0, true)
+            , block);
+
 
     llvm::ExecutionEngine *engine = llvm::EngineBuilder(module).create();
     module->dump();
     std::vector<llvm::GenericValue> void_arg;
-    engine->runFunction(main_func, void_arg);
+//    engine->runFunction(main_func, void_arg);
+    int (*fp)() = reinterpret_cast<int (*)()>(
+                engine->getPointerToFunction(main_func));
+    fp();
     delete module;
     return 0;
 }
