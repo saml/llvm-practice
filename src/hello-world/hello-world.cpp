@@ -7,6 +7,7 @@
 #include "llvm/BasicBlock.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
+#include "llvm/ADT/STLExtras.h"
 
 #include <vector>
 
@@ -21,6 +22,7 @@ int main() {
     llvm::Type const* Void = llvm::Type::getVoidTy(context);
     llvm::PointerType const* CharPtr = llvm::PointerType::get(Char, 0);
 
+
     //printf takes one char*
     std::vector<const llvm::Type*> printf_arg_types;
     printf_arg_types.push_back(CharPtr);
@@ -31,22 +33,12 @@ int main() {
             , printf_arg_types
             , true);
 
-    //insert printf
+    //declare printf
     llvm::Function *printf_func = llvm::cast<llvm::Function>(
             module->getOrInsertFunction("printf", printf_type));
 
-    //prepare for printf arguments
-    llvm::Constant *cstr = llvm::ConstantArray::get(context, "hello world!");
 
-    llvm::Type const* tmp = cstr->getType();
-    llvm::GlobalVariable *cstr_var = new llvm::GlobalVariable(
-            *module,
-            tmp, true, llvm::GlobalVariable::InternalLinkage, cstr, "");
-
-    std::vector<llvm::Value*> printf_args;
-    printf_args.push_back(cstr_var);
-
-    //main function
+    //declare main function
     llvm::Function *main_func = llvm::cast<llvm::Function>(
             module->getOrInsertFunction(
                 "main_function"
@@ -59,7 +51,29 @@ int main() {
             , "main_block"
             , main_func);
 
-    //
+
+    //argument to printf: "hello world!"
+    llvm::Constant *cstr = llvm::ConstantArray::get(context, "hello world!");
+    llvm::GlobalVariable *cstr_var = new llvm::GlobalVariable(
+            *module
+            , cstr->getType()
+            , true
+            , llvm::GlobalVariable::InternalLinkage
+            , cstr
+            , "");
+
+    //from http://comments.gmane.org/gmane.comp.compilers.llvm.devel/4115
+    llvm::Constant *get_element_ptr_params[] = {
+            llvm::Constant::getNullValue(Int)
+            , llvm::Constant::getNullValue(Int)
+    };
+    llvm::Constant *arg = llvm::ConstantExpr::getGetElementPtr(
+            cstr_var
+            , get_element_ptr_params
+            , llvm::array_lengthof(get_element_ptr_params));
+    std::vector<llvm::Value*> printf_args;
+    printf_args.push_back(arg);
+
     llvm::CallInst *printf_call = llvm::CallInst::Create(
             printf_func
             , printf_args.begin()
@@ -67,7 +81,9 @@ int main() {
             , ""
             , block);
 
+
     llvm::ExecutionEngine *engine = llvm::EngineBuilder(module).create();
+    module->dump();
     std::vector<llvm::GenericValue> void_arg;
     engine->runFunction(main_func, void_arg);
     delete module;
