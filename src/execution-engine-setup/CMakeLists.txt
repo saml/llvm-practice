@@ -1,5 +1,5 @@
-project(hello-world)
-add_executable(${PROJECT_NAME} hello-world.cpp)
+project(execution-engine-setup)
+add_executable(${PROJECT_NAME} execution-engine-setup.cpp)
 target_link_libraries(${PROJECT_NAME}
     pthread
     ffi

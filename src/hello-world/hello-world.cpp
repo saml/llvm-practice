@@ -1,3 +1,5 @@
+//printing hello world!
+
 #include "llvm/LLVMContext.h"
 #include "llvm/Module.h"
 #include "llvm/Constants.h"
@@ -8,20 +10,33 @@
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ExecutionEngine/JIT.h"
+#include "llvm/Target/TargetSelect.h"
 
 #include <vector>
+#include <cstdio>
+#include <string>
 
 
 int main() {
+    llvm::InitializeNativeTarget();
     llvm::LLVMContext & context = llvm::getGlobalContext();
     llvm::Module *module = new llvm::Module("asdf", context);
+
+    //create ExecutionEngine
+    llvm::EngineBuilder engine_builder = llvm::EngineBuilder(module);
+    std::string err_str;
+    engine_builder.setErrorStr(&err_str);
+    llvm::ExecutionEngine *engine = engine_builder.create();
+    if (!engine) {
+        fprintf(stderr, "err: %s\n", err_str.c_str());
+        exit(1);
+    }
 
     //commonly used types
     llvm::IntegerType const* Char = llvm::Type::getInt8Ty(context);
     llvm::IntegerType const* Int = llvm::Type::getInt32Ty(context);
-    llvm::Type const* Void = llvm::Type::getVoidTy(context);
     llvm::PointerType const* CharPtr = llvm::PointerType::get(Char, 0);
-
 
     //printf takes one char*
     std::vector<const llvm::Type*> printf_arg_types;
@@ -53,6 +68,7 @@ int main() {
 
 
     //argument to printf: "hello world!"
+    //c-strings should be GlobalVariable (?)
     llvm::Constant *cstr = llvm::ConstantArray::get(context, "hello world!\n");
     llvm::GlobalVariable *cstr_var = new llvm::GlobalVariable(
             *module
@@ -74,26 +90,22 @@ int main() {
     std::vector<llvm::Value*> printf_args;
     printf_args.push_back(arg);
 
-    llvm::CallInst *printf_call = llvm::CallInst::Create(
+    //printf("hello world!\n");
+    llvm::CallInst::Create(
             printf_func
             , printf_args.begin()
             , printf_args.end()
             , ""
             , block);
 
+    //return 0;
     llvm::ReturnInst::Create(
             context
             , llvm::ConstantInt::get(Int, 0, true)
             , block);
 
-
-    llvm::ExecutionEngine *engine = llvm::EngineBuilder(module).create();
-    module->dump();
     std::vector<llvm::GenericValue> void_arg;
-//    engine->runFunction(main_func, void_arg);
-    int (*fp)() = reinterpret_cast<int (*)()>(
-                engine->getPointerToFunction(main_func));
-    fp();
+    engine->runFunction(main_func, void_arg);
     delete module;
     return 0;
 }

@@ -33,7 +33,7 @@ cd "$build_dir"
 cmake -G 'Unix Makefiles' \
     -DCMAKE_INSTALL_PREFIX="$prefix" \
     -DCMAKE_BUILD_TYPE=Debug .. || exit 1
-make install
+make && make install
 
 
 
