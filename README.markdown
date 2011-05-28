@@ -32,7 +32,8 @@ More cmake info at http://llvm.org/docs/CMake.html .
 
     cd llvm-practice
     mkdir build
-    cmake -DLLVM_HOME=$HOME/opt/llvm -G 'Unix Makefiles' ..
+    cd build
+    cmake -DLLVM_INCLUDE=~/opt/llvm/include -DLLVM_LIB=~/opt/llvm/lib -G 'Unix Makefiles' ..
     make
 
 # Set up Eclipse CDT4 Project
