@@ -9,6 +9,7 @@ m
 LLVMX86Disassembler
 LLVMX86AsmParser
 LLVMX86CodeGen
+LLVMX86Desc
 LLVMSelectionDAG
 LLVMAsmPrinter
 LLVMMCParser

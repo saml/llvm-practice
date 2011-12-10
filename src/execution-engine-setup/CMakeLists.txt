@@ -15,7 +15,7 @@ LLVMMCParser
 LLVMX86AsmPrinter
 LLVMX86Utils
 LLVMX86Info
-LLVMJIT
+LLVMInterpreter
 LLVMExecutionEngine
 LLVMCodeGen
 LLVMScalarOpts

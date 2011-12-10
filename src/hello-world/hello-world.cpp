@@ -1,5 +1,6 @@
 //printing hello world!
 
+#include "llvm/Support/TargetSelect.h"
 #include "llvm/LLVMContext.h"
 #include "llvm/Module.h"
 #include "llvm/Constants.h"
@@ -11,7 +12,6 @@
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ExecutionEngine/JIT.h"
-#include "llvm/Target/TargetSelect.h"
 
 #include <vector>
 #include <cstdio>
@@ -34,13 +34,12 @@ int main() {
     }
 
     //commonly used types
-    llvm::IntegerType const* Char = llvm::Type::getInt8Ty(context);
-    llvm::IntegerType const* Int = llvm::Type::getInt32Ty(context);
-    llvm::PointerType const* CharPtr = llvm::PointerType::get(Char, 0);
+    llvm::IntegerType* Char = llvm::Type::getInt8Ty(context);
+    llvm::IntegerType* Int = llvm::Type::getInt32Ty(context);
+    llvm::Type* CharPtr = llvm::PointerType::get(Char, 0);
 
     //printf takes one char*
-    std::vector<const llvm::Type*> printf_arg_types;
-    printf_arg_types.push_back(CharPtr);
+    llvm::ArrayRef<llvm::Type*> printf_arg_types = llvm::makeArrayRef(CharPtr);
 
     //int printf(char*, ...)
     llvm::FunctionType *printf_type = llvm::FunctionType::get(
@@ -83,18 +82,16 @@ int main() {
             llvm::Constant::getNullValue(Int)
             , llvm::Constant::getNullValue(Int)
     };
-    llvm::Constant *arg = llvm::ConstantExpr::getGetElementPtr(
+    llvm::Value *arg = llvm::ConstantExpr::getGetElementPtr(
             cstr_var
             , get_element_ptr_params
             , llvm::array_lengthof(get_element_ptr_params));
-    std::vector<llvm::Value*> printf_args;
-    printf_args.push_back(arg);
+    llvm::ArrayRef<llvm::Value*> printf_args = llvm::makeArrayRef(arg);
 
     //printf("hello world!\n");
     llvm::CallInst::Create(
             printf_func
-            , printf_args.begin()
-            , printf_args.end()
+            , printf_args
             , ""
             , block);
 

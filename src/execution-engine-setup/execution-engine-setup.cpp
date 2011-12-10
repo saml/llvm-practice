@@ -1,11 +1,13 @@
 //this shows how to create ExecutionEngine.
 
-#include "llvm/Target/TargetSelect.h"
-#include "llvm/ExecutionEngine/JIT.h"
+#include "llvm/Support/TargetSelect.h"
+//#include "llvm/ExecutionEngine/JIT.h"
 //either JIT.h or Interpreter.h (or both) *has to* be included.
 //otherwise, though it compiles and links fine,
 //ExecutionEngine cannot be created.
-//#include "llvm/ExecutionEngine/Interpreter.h"
+
+//I'm going to use LLVMInterpreter.
+#include "llvm/ExecutionEngine/Interpreter.h"
 #include "llvm/LLVMContext.h"
 #include "llvm/Module.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
@@ -14,8 +16,6 @@
 #include <string>
 
 int main() {
-    llvm::InitializeNativeTarget();//this is important
-
     llvm::LLVMContext & context = llvm::getGlobalContext();
     llvm::Module *module = new llvm::Module("asdf", context);
 
